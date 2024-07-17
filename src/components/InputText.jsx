@@ -18,6 +18,7 @@ const InputText = forwardRef(({ id }, ref) => {
       id={id}
       type="text"
       value={value}
+      placeholder="Add a new task"
       onChange={(e) => setValue(e.target.value)}
     />
   );

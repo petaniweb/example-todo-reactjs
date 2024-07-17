@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import InputText from "@components/InputText";
@@ -8,34 +8,67 @@ import Label from "@components/label";
 import Card from "@components/card";
 import { DONE_STATUS, TODO_STATUS } from "@constants/string";
 
+import {
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "@services/taskServices";
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const inputRef = useRef(null);
 
-  const onClickButtonAdd = () => {
-    const objectTask = {
-      id: uuidv4(),
-      text: inputRef.current.getValue(),
-      status: TODO_STATUS,
-    };
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
-    setTasks((prevState) => [...prevState, objectTask]);
-    inputRef.current.setEmpty();
+  const onClickButtonAdd = async () => {
+    try {
+      const objectTask = {
+        description: inputRef.current.getValue(),
+      };
+
+      await createTask(objectTask);
+
+      fetchTasks();
+    } catch (error) {
+      console.error("Error create tasks", error);
+    }
   };
 
-  const onClickButtonDone = (id) => {
-    setTasks((prevState) => {
-      const prev = prevState;
-      const indexTask = prev.findIndex((t) => t.id === id);
-      prev[indexTask].status = DONE_STATUS;
+  const onClickButtonDone = async (task) => {
+    try {
+      if (task.status === DONE_STATUS) {
+        task.status = TODO_STATUS;
+      } else {
+        task.status = DONE_STATUS;
+      }
 
-      return [...prev];
-    });
+      await updateTask(task);
+
+      fetchTasks();
+    } catch (error) {
+      console.error("Error delete tasks", error);
+    }
   };
 
-  const onClickButtonDelete = (id) => {
-    setTasks((prevState) => prevState.filter((t) => t.id !== id));
+  const onClickButtonDelete = async (id) => {
+    try {
+      await deleteTask(id);
+      fetchTasks();
+    } catch (error) {
+      console.error("Error delete tasks", error);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      const { data } = await getTasks();
+      setTasks(data);
+    } catch (error) {
+      console.error("Error fetching tasks", error);
+    }
   };
 
   const doneTasks = tasks.filter((t) => t.status === DONE_STATUS);
@@ -60,7 +93,7 @@ function App() {
                   task={task}
                   key={`task-todo-${i}`}
                   actionDelete={onClickButtonDelete}
-                  actionDone={onClickButtonDone}
+                  actionDone={() => onClickButtonDone(task)}
                 />
               ))}
             </div>
@@ -73,7 +106,7 @@ function App() {
                   task={task}
                   key={`task-todo-${i}`}
                   actionDelete={onClickButtonDelete}
-                  actionDone={onClickButtonDone}
+                  actionDone={() => onClickButtonDone(task)}
                 />
               ))}
             </div>

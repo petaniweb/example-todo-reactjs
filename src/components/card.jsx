@@ -39,7 +39,7 @@ function Card({ task, actionDelete, actionDone }) {
           isDone && "text-emerald-300 line-through"
         )}
       >
-        {task.text}
+        {task.subject}
       </span>
       {RenderAction(
         { status: task.status, id: task.id },
